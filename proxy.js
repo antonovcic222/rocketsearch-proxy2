@@ -39,7 +39,7 @@ app.post('/genapi-query', async (req, res) => {
   };
 
   const payload = {
-    model: "deepseek-v4-flash",   // бюджетная, стабильная версия
+    model: "grok-4-3",   // бюджетная, стабильная версия
     messages: [systemMessage, ...messages],
     max_tokens: 1000,
     temperature: 0.3,
