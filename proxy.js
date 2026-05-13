@@ -39,7 +39,7 @@ app.post('/genapi-query', async (req, res) => {
   };
 
   const payload = {
-    model: "grok-4.3",
+    model: "gpt-5-5",
     messages: [systemMessage, ...messages],
     max_tokens: 500,
     temperature: 0.3,
