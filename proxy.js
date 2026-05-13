@@ -3,14 +3,10 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
 
 const SUPABASE_URL = "https://joxydnlbtlrhvvecoovr.supabase.co";
-const GENAPI_KEY = "sk-8G88dciyi99U7SHLfjEgwH7Ep0m6gjvAGJDjGDgCJtEhY9yGa4unBw2jwc4o";
+const GENAPI_KEY = "sk-8G88dciyi99U7SHLfjEgwH7Ep0m6gjvAGJDjGDgCJtEhY9yGa4unBw2jwc4o"; // ваш ключ
 
 const app = express();
-
-// Разрешаем CORS для всех источников (можно ограничить доменом вашего сайта)
 app.use(cors());
-
-// Парсинг JSON тела запроса
 app.use(express.json());
 
 // Прокси для Supabase
@@ -20,12 +16,17 @@ app.use('/supabase', createProxyMiddleware({
   pathRewrite: { '^/supabase': '' },
 }));
 
-// AI-консультант
+// AI-консультант (чат)
 app.post('/genapi-query', async (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt) return res.status(400).json({ error: 'prompt required' });
+  const { messages } = req.body; // получаем всю историю сообщений
+  if (!messages || !Array.isArray(messages)) {
+    return res.status(400).json({ error: 'messages array is required' });
+  }
 
-  const systemPrompt = `Ты — эксперт по космическим аппаратам, полезным нагрузкам и комплектующим для малых спутников. Отвечай **только** на вопросы, связанные с космическим оборудованием, комплектующими, массой, совместимостью, характеристиками камер, аккумуляторов, солнечных панелей, двигателей, систем связи и других компонентов космических аппаратов. Если вопрос не относится к этим темам, отвечай: "Я могу консультировать только по космическим комплектующим и оборудованию."`;
+  const systemPrompt = {
+    role: "system",
+    content: `Ты — эксперт по космическим аппаратам, полезным нагрузкам и комплектующим для малых спутников. Отвечай **только** на вопросы, связанные с космическим оборудованием, комплектующими, массой, совместимостью, характеристиками камер, аккумуляторов, солнечных панелей, двигателей, систем связи и других компонентов космических аппаратов. Если вопрос не относится к этим темам, отвечай: "Я могу консультировать только по космическим комплектующим и оборудованию."`
+  };
 
   try {
     const resp = await fetch("https://proxy.gen-api.ru/v1/chat/completions", {
@@ -35,12 +36,9 @@ app.post('/genapi-query', async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "deepseek-v4",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: prompt }
-        ],
-        max_tokens: 300,
+        model: "grok-4-3",
+        messages: [systemPrompt, ...messages], // системный промпт + история диалога
+        max_tokens: 500,
         temperature: 0.3
       })
     });
