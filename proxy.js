@@ -6,7 +6,7 @@ const GENAPI_KEY = "sk-8G88dciyi99U7SHLfjEgwH7Ep0m6gjvAGJDjGDgCJtEhY9yGa4unBw2jw
 
 const app = express();
 
-// Ручной CORS – пропускаем вообще всё
+// Ручной CORS
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
@@ -26,7 +26,7 @@ app.use('/supabase', createProxyMiddleware({
   pathRewrite: { '^/supabase': '' },
 }));
 
-// AI-консультант (DeepSeek V4 через OpenAI-эндпоинт GenAPI)
+// AI-консультант (OpenAI‑формат, модель deepseek-v4-flash)
 app.post('/genapi-query', async (req, res) => {
   const { messages } = req.body;
   if (!messages || !Array.isArray(messages)) {
@@ -39,7 +39,7 @@ app.post('/genapi-query', async (req, res) => {
   };
 
   const payload = {
-    model: "deepseek-v4",
+    model: "deepseek-v4-flash",   // бюджетная, стабильная версия
     messages: [systemMessage, ...messages],
     max_tokens: 1000,
     temperature: 0.3,
@@ -57,19 +57,18 @@ app.post('/genapi-query', async (req, res) => {
 
     const data = await response.json();
 
-    let answer;
+    // Если есть choices – возвращаем ответ
     if (data.choices && data.choices[0] && data.choices[0].message) {
-      answer = data.choices[0].message.content;
-    } else if (data.error) {
-      answer = `Ошибка DeepSeek: ${data.error.message || JSON.stringify(data.error)}`;
-    } else {
-      answer = "Ошибка получения ответа от AI.";
+      return res.json({ answer: data.choices[0].message.content });
     }
 
-    res.json({ answer });
+    // Иначе возвращаем полный ответ GenAPI как строку – для диагностики
+    return res.json({
+      answer: `❌ Нет ответа от модели. Ответ GenAPI: ${JSON.stringify(data)}`
+    });
   } catch (e) {
     console.error('Fetch error:', e);
-    res.status(500).json({ answer: "Ошибка соединения с GenAPI." });
+    return res.status(500).json({ answer: "Ошибка соединения с GenAPI." });
   }
 });
 
