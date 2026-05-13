@@ -26,7 +26,7 @@ app.use('/supabase', createProxyMiddleware({
   pathRewrite: { '^/supabase': '' },
 }));
 
-// AI-консультант (OpenAI-совместимый эндпоинт GenAPI)
+// AI-консультант (OpenAI-совместимый эндпоинт GenAPI, модель deepseek-v4)
 app.post('/genapi-query', async (req, res) => {
   const { messages } = req.body;
   if (!messages || !Array.isArray(messages)) {
@@ -39,9 +39,9 @@ app.post('/genapi-query', async (req, res) => {
   };
 
   const payload = {
-    model: "grok-4-3",
+    model: "deepseek-v4",          // основная модель (не flash, не pro – лучшая)
     messages: [systemMessage, ...messages],
-    max_tokens: 500,
+    max_tokens: 1000,
     temperature: 0.3,
   };
 
@@ -56,21 +56,15 @@ app.post('/genapi-query', async (req, res) => {
     });
 
     const data = await response.json();
-    // Выводим в логи Railway для отладки (можно убрать после проверки)
-    console.error('GenAPI response:', JSON.stringify(data).substring(0, 500));
+    console.error('DeepSeek response:', JSON.stringify(data).substring(0, 500));
 
     let answer;
     if (data.choices && data.choices[0] && data.choices[0].message) {
       answer = data.choices[0].message.content;
     } else if (data.error) {
-      // Если API вернуло ошибку, показываем её
-      answer = `Ошибка AI: ${data.error.message || data.error}`;
+      answer = `Ошибка DeepSeek: ${data.error.message || data.error}`;
     } else {
-      // На всякий случай пытаемся достать из других полей
-      answer = data.output?.choices?.[0]?.message?.content
-            || data.output?.content
-            || (typeof data.output === 'string' ? data.output : null)
-            || "Ошибка получения ответа от AI.";
+      answer = "Ошибка получения ответа от AI.";
     }
 
     res.json({ answer });
