@@ -6,23 +6,26 @@ const GENAPI_KEY = "sk-8G88dciyi99U7SHLfjEgwH7Ep0m6gjvAGJDjGDgCJtEhY9yGa4unBw2jw
 
 const app = express();
 
+// Единый CORS для всех запросов
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-  res.header("Access-Control-Allow-Headers", req.headers['access-control-request-headers'] || "*");
-  if (req.method === "OPTIONS") return res.sendStatus(200);
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Headers", req.headers['access-control-request-headers'] || "*");
+    return res.sendStatus(200);
+  }
   next();
 });
 
-app.use(express.json());
-
+// Прокси Supabase (без парсинга тела)
 app.use('/supabase', createProxyMiddleware({
   target: SUPABASE_URL,
   changeOrigin: true,
   pathRewrite: { '^/supabase': '' },
 }));
 
-app.post('/genapi-query', async (req, res) => {
+// AI-консультант (парсинг JSON только здесь)
+app.post('/genapi-query', express.json(), async (req, res) => {
   const { messages } = req.body;
   if (!messages || !Array.isArray(messages)) return res.status(400).json({ answer: 'Неверный формат сообщений.' });
 
