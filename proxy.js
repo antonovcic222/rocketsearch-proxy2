@@ -6,10 +6,16 @@ const GENAPI_KEY = "sk-8G88dciyi99U7SHLfjEgwH7Ep0m6gjvAGJDjGDgCJtEhY9yGa4unBw2jw
 
 const app = express();
 
-// Ручная установка CORS заголовков для всех маршрутов
+// Ручной CORS: разрешаем все заголовки
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+  // Зеркалируем запрошенные заголовки (или разрешаем все)
+  if (req.headers['access-control-request-headers']) {
+    res.header("Access-Control-Allow-Headers", req.headers['access-control-request-headers']);
+  } else {
+    res.header("Access-Control-Allow-Headers", "*");
+  }
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
@@ -18,7 +24,7 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-// Прокси для Supabase
+// Прокси Supabase
 app.use('/supabase', createProxyMiddleware({
   target: SUPABASE_URL,
   changeOrigin: true,
@@ -45,7 +51,7 @@ app.post('/genapi-query', async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo", // временно GPT-3.5, чтобы проверить работоспособность
+        model: "gpt-3.5-turbo",
         messages: [systemPrompt, ...messages],
         max_tokens: 300,
         temperature: 0.3
