@@ -6,7 +6,7 @@ const GENAPI_KEY = "sk-8G88dciyi99U7SHLfjEgwH7Ep0m6gjvAGJDjGDgCJtEhY9yGa4unBw2jw
 
 const app = express();
 
-// Ручной CORS
+// Ручной CORS – пропускаем вообще всё
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
@@ -26,7 +26,7 @@ app.use('/supabase', createProxyMiddleware({
   pathRewrite: { '^/supabase': '' },
 }));
 
-// AI-консультант (OpenAI-совместимый эндпоинт GenAPI, модель deepseek-v4)
+// AI-консультант (DeepSeek V4 через OpenAI-эндпоинт GenAPI)
 app.post('/genapi-query', async (req, res) => {
   const { messages } = req.body;
   if (!messages || !Array.isArray(messages)) {
@@ -39,7 +39,7 @@ app.post('/genapi-query', async (req, res) => {
   };
 
   const payload = {
-    model: "deepseek-v4",          // основная модель (не flash, не pro – лучшая)
+    model: "deepseek-v4",
     messages: [systemMessage, ...messages],
     max_tokens: 1000,
     temperature: 0.3,
@@ -56,13 +56,12 @@ app.post('/genapi-query', async (req, res) => {
     });
 
     const data = await response.json();
-    console.error('DeepSeek response:', JSON.stringify(data).substring(0, 500));
 
     let answer;
     if (data.choices && data.choices[0] && data.choices[0].message) {
       answer = data.choices[0].message.content;
     } else if (data.error) {
-      answer = `Ошибка DeepSeek: ${data.error.message || data.error}`;
+      answer = `Ошибка DeepSeek: ${data.error.message || JSON.stringify(data.error)}`;
     } else {
       answer = "Ошибка получения ответа от AI.";
     }
