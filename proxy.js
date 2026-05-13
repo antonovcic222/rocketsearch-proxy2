@@ -1,10 +1,16 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const cors = require('cors');
 
 const SUPABASE_URL = "https://joxydnlbtlrhvvecoovr.supabase.co";
-const GENAPI_KEY = "sk-8G88dciyi99U7SHLfjEgwH7Ep0m6gjvAGJDjGDgCJtEhY9yGa4unBw2jwc4o"; // ваш ключ
+const GENAPI_KEY = "sk-8G88dciyi99U7SHLfjEgwH7Ep0m6gjvAGJDjGDgCJtEhY9yGa4unBw2jwc4o";
 
 const app = express();
+
+// Разрешаем CORS для всех источников (можно ограничить доменом вашего сайта)
+app.use(cors());
+
+// Парсинг JSON тела запроса
 app.use(express.json());
 
 // Прокси для Supabase
@@ -14,7 +20,7 @@ app.use('/supabase', createProxyMiddleware({
   pathRewrite: { '^/supabase': '' },
 }));
 
-// AI-консультант (OpenAI-совместимый эндпоинт)
+// AI-консультант
 app.post('/genapi-query', async (req, res) => {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: 'prompt required' });
