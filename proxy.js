@@ -1,12 +1,21 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
-const cors = require('cors');
 
 const SUPABASE_URL = "https://joxydnlbtlrhvvecoovr.supabase.co";
-const GENAPI_KEY = "sk-8G88dciyi99U7SHLfjEgwH7Ep0m6gjvAGJDjGDgCJtEhY9yGa4unBw2jwc4o"; // ваш ключ
+const GENAPI_KEY = "sk-8G88dciyi99U7SHLfjEgwH7Ep0m6gjvAGJDjGDgCJtEhY9yGa4unBw2jwc4o";
 
 const app = express();
-app.use(cors());
+
+// Ручная установка CORS заголовков для всех маршрутов
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json());
 
 // Прокси для Supabase
@@ -16,9 +25,9 @@ app.use('/supabase', createProxyMiddleware({
   pathRewrite: { '^/supabase': '' },
 }));
 
-// AI-консультант (чат)
+// AI-консультант
 app.post('/genapi-query', async (req, res) => {
-  const { messages } = req.body; // получаем всю историю сообщений
+  const { messages } = req.body;
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages array is required' });
   }
@@ -36,9 +45,9 @@ app.post('/genapi-query', async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "grok-4-3",
-        messages: [systemPrompt, ...messages], // системный промпт + история диалога
-        max_tokens: 500,
+        model: "gpt-3.5-turbo", // временно GPT-3.5, чтобы проверить работоспособность
+        messages: [systemPrompt, ...messages],
+        max_tokens: 300,
         temperature: 0.3
       })
     });
