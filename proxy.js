@@ -52,7 +52,7 @@ app.post('/genapi-query', express.json(), async (req, res) => {
   };
 
   const payload = {
-    model: "text-embedding-3-large",
+    model: "deepseek-v4-flash",
     messages: [systemMessage, ...messages],
     max_tokens: 1500,
     temperature: 0.3,
