@@ -52,7 +52,7 @@ app.post('/genapi-query', express.json(), async (req, res) => {
   };
 
   const payload = {
-    model: "qwen-3-6-plus",
+    model: "text-embedding-3-small",
     messages: [systemMessage, ...messages],
     max_tokens: 1500,
     temperature: 0.3,
