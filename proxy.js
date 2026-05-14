@@ -52,7 +52,7 @@ app.post('/genapi-query', express.json(), async (req, res) => {
   };
 
   const payload = {
-    model: "grok-4.3",
+    model: "grok-4-3",
     messages: [systemMessage, ...messages],
     max_tokens: 1500,
     temperature: 0.3,
