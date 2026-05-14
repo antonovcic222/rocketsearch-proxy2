@@ -59,7 +59,7 @@ app.post('/genapi-query', express.json(), async (req, res) => {
   };
 
   try {
-    const response = await fetch("https://proxy.gen-api.ru/v1/chat", {
+    const response = await fetch("https://proxy.gen-api.ru/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": `Bearer ${GENAPI_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload)
