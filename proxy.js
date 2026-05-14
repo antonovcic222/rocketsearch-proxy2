@@ -52,7 +52,7 @@ app.post('/genapi-query', express.json(), async (req, res) => {
   };
 
   const payload = {
-    model: "yandexgpt-4"
+    model: "gpt-4o-2024-08-06",
     messages: [systemMessage, ...messages],
     max_tokens: 1500,
     temperature: 0.3,
